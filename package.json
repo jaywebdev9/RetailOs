@@ -1,0 +1,40 @@
+{
+  "name": "retail-os",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Production-grade Retail & Wholesale Business Operating System",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "npm run dev -w @retail-os/api",
+    "dev:web": "npm run dev -w @retail-os/web",
+    "build": "npm run build -w @retail-os/api && npm run build -w @retail-os/web",
+    "db:generate": "prisma generate --schema=./prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema=./prisma/schema.prisma",
+    "db:migrate:prod": "prisma migrate deploy --schema=./prisma/schema.prisma",
+    "db:seed": "tsx prisma/seed/index.ts",
+    "db:studio": "prisma studio --schema=./prisma/schema.prisma",
+    "db:reset": "prisma migrate reset --schema=./prisma/schema.prisma --force",
+    "test": "npm run test -w @retail-os/api",
+    "test:e2e": "npm run test:e2e -w @retail-os/api",
+    "lint": "npm run lint -w @retail-os/api && npm run lint -w @retail-os/web",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prisma": "^6.5.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed/index.ts"
+  }
+}
