@@ -534,14 +534,20 @@ describe('Critical business flow (e2e)', () => {
     const email = `bill-${tag}-${unique}@retailos.test`;
     const r = await http()
       .post('/api/v1/auth/register')
-      .send({ email, password: 'TestPass123!', firstName: tag, lastName: 'Billing', ...extra })
-      .expect(201);
+      .send({ email, password: 'TestPass123!', firstName: tag, lastName: 'Billing', ...extra });
+
+    if (r.status !== 201) {
+      console.error('REGISTER FAILED:', r.status, r.body, r.text);
+    }
+
+    expect(r.status).toBe(201);
     const token = r.body.accessToken as string;
     const biz = await http()
       .post('/api/v1/businesses')
       .set('Authorization', `Bearer ${token}`)
       .send({ name: `Bill Shop ${tag} ${unique}`, businessType: 'GROCERY', currency: 'TZ' + 'S' })
       .expect(201);
+
     return { token, userId: r.body.user.id as string, bizId: biz.body.id as string };
   };
   const as = (u: { token: string; bizId: string }, r: request.Test) =>
