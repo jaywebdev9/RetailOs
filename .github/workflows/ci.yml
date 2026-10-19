@@ -60,8 +60,9 @@ jobs:
           cache: 'npm'
       - name: Install
         run: npm ci || npm install
-      - name: Prisma migrate
-        run: npx prisma migrate deploy --schema=./prisma/schema.prisma || npx prisma db push --schema=./prisma/schema.prisma --accept-data-loss
+      - name: Sync test database schema
+        run: npx prisma db push --schema=./prisma/schema.prisma
+
       - name: Generate client
         run: npx prisma generate --schema=./prisma/schema.prisma
       - name: E2E critical flow
