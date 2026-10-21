@@ -34,7 +34,10 @@ export function SubscriptionBanner() {
       .catch(() => {}); // offline or not a member: show nothing
   }, []);
 
-  useEffect(() => { load(); }, [pathname, load]);
+  useEffect(() => {
+    load();
+  }, [pathname, load]);
+
   useEffect(() => {
     window.addEventListener('subscription-expired', load);
     return () => window.removeEventListener('subscription-expired', load);
@@ -65,15 +68,20 @@ export function SubscriptionBanner() {
   }
 
   return (
-    <div className={`print:hidden px-4 py-2 text-sm flex flex-wrap items-center justify-center gap-x-4 gap-y-1 ${tone}`}>
+    <div
+      className={`print:hidden flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-3 py-2.5 text-center text-xs font-medium sm:px-4 sm:text-sm ${tone}`}
+      style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top, 0px))' }}
+    >
       <span className="font-medium">{text}</span>
       {pathname !== '/billing' && (
-        <Link href="/billing" className="underline font-semibold">
+        <Link href="/billing" className="underline font-semibold underline-offset-2">
           {status.state === 'TRIALING' ? t('bill_choosePlan') : t('bill_renew')}
         </Link>
       )}
       {showExport && (
-        <Link href="/reports" className="underline">{t('bill_exportData')}</Link>
+        <Link href="/reports" className="underline underline-offset-2">
+          {t('bill_exportData')}
+        </Link>
       )}
     </div>
   );
