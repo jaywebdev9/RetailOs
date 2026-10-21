@@ -56,6 +56,8 @@ type AppShellProps = {
   children: ReactNode;
   title: string;
   subtitle?: string;
+  /** Optional breadcrumb label (kept for compatibility with list pages) */
+  breadcrumb?: string;
   actions?: ReactNode;
   narrow?: boolean;
 };
@@ -64,6 +66,7 @@ export function AppShell({
   children,
   title,
   subtitle,
+  breadcrumb,
   actions,
   narrow = false,
 }: AppShellProps) {
