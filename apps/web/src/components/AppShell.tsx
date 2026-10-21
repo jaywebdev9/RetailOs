@@ -259,7 +259,8 @@ export function AppShell({
               <button
                 type="button"
                 onClick={() => setLocale(locale === 'en' ? 'sw' : 'en')}
-                className="hidden h-8 items-center rounded-md border border-slate-200 px-2 text-[11px] font-semibold text-slate-600 sm:inline-flex"
+                aria-label="Change language"
+                className="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-bold text-teal-800 hover:bg-teal-50"
               >
                 {locale === 'en' ? 'SW' : 'EN'}
               </button>
@@ -267,7 +268,7 @@ export function AppShell({
               <div className="relative">
                 <button
                   type="button"
-                  aria-label="{t('notifications')}"
+                  aria-label={t('notifications')}
                   onClick={() => setNotifOpen((v) => !v)}
                   className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
                 >
