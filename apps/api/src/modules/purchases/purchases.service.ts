@@ -229,7 +229,10 @@ export class PurchasesService {
           action: 'PURCHASE_RECEIVE',
           entityType: 'Purchase',
           entityId: purchaseId,
-          newValues: { status: newStatus, items: dto.items },
+          newValues: {
+  status: newStatus,
+  items: dto.items as unknown as Prisma.InputJsonValue,
+},
         },
       });
     });
