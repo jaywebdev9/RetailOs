@@ -9,6 +9,7 @@ import {
   Bell,
   Boxes,
   ChartNoAxesCombined,
+  CircleHelp,
   CreditCard,
   LayoutDashboard,
   LogOut,
@@ -29,27 +30,28 @@ import { useI18n } from '@/i18n';
 import { clsx } from 'clsx';
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/pos', label: 'Point of sale', icon: ShoppingCart },
-  { href: '/products', label: 'Products', icon: Package },
-  { href: '/sales', label: 'Sales', icon: ReceiptText },
-  { href: '/purchases', label: 'Purchases', icon: ShoppingBag },
-  { href: '/customers', label: 'Customers', icon: Users },
-  { href: '/suppliers', label: 'Suppliers', icon: Truck },
-  { href: '/expenses', label: 'Expenses', icon: Wallet },
-  { href: '/cash', label: 'Cash', icon: Banknote },
-  { href: '/stock-count', label: 'Stock count', icon: Boxes },
-  { href: '/returns', label: 'Returns', icon: ArrowDownRight },
-  { href: '/reports', label: 'Reports', icon: ChartNoAxesCombined },
-  { href: '/billing', label: 'Billing', icon: CreditCard },
+  { href: '/dashboard', labelKey: 'dashboard' as const, icon: LayoutDashboard },
+  { href: '/pos', labelKey: 'pos' as const, icon: ShoppingCart },
+  { href: '/products', labelKey: 'products' as const, icon: Package },
+  { href: '/sales', labelKey: 'sales' as const, icon: ReceiptText },
+  { href: '/purchases', labelKey: 'purchases' as const, icon: ShoppingBag },
+  { href: '/customers', labelKey: 'customers' as const, icon: Users },
+  { href: '/suppliers', labelKey: 'suppliers' as const, icon: Truck },
+  { href: '/expenses', labelKey: 'expenses' as const, icon: Wallet },
+  { href: '/cash', labelKey: 'cash' as const, icon: Banknote },
+  { href: '/stock-count', labelKey: 'stockCount' as const, icon: Boxes },
+  { href: '/returns', labelKey: 'returns' as const, icon: ArrowDownRight },
+  { href: '/reports', labelKey: 'reports' as const, icon: ChartNoAxesCombined },
+  { href: '/billing', labelKey: 'billing' as const, icon: CreditCard },
+  { href: '/help', labelKey: 'help' as const, icon: CircleHelp },
 ];
 
 const MOBILE_TABS = [
-  { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
-  { href: '/pos', label: 'POS', icon: ShoppingCart },
-  { href: '/products', label: 'Stock', icon: Package },
-  { href: '/sales', label: 'Sales', icon: ReceiptText },
-  { href: '/reports', label: 'More', icon: ChartNoAxesCombined },
+  { href: '/dashboard', labelKey: 'home' as const, icon: LayoutDashboard },
+  { href: '/pos', labelKey: 'posShort' as const, icon: ShoppingCart },
+  { href: '/products', labelKey: 'stock' as const, icon: Package },
+  { href: '/sales', labelKey: 'sales' as const, icon: ReceiptText },
+  { href: '/help', labelKey: 'more' as const, icon: ChartNoAxesCombined },
 ];
 
 type AppShellProps = {
@@ -77,7 +79,7 @@ export function AppShell({
   const [user, setUser] = useState<{ firstName?: string; lastName?: string } | null>(null);
   const [ready, setReady] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const { locale, setLocale } = useI18n();
+  const { locale, setLocale, t } = useI18n();
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -174,7 +176,7 @@ export function AppShell({
                   )}
                 >
                   <Icon size={17} strokeWidth={active ? 2.2 : 1.8} />
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               </li>
             );
@@ -192,7 +194,7 @@ export function AppShell({
           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800"
         >
           <LogOut size={16} />
-          Sign out
+          {t('signOut')}
         </button>
       </div>
     </>
@@ -242,7 +244,7 @@ export function AppShell({
               />
               <input
                 type="search"
-                placeholder="Search…"
+                placeholder={t('search')}
                 className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-teal-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-600/15"
               />
             </div>
@@ -265,7 +267,7 @@ export function AppShell({
               <div className="relative">
                 <button
                   type="button"
-                  aria-label="Notifications"
+                  aria-label="{t('notifications')}"
                   onClick={() => setNotifOpen((v) => !v)}
                   className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
                 >
@@ -274,16 +276,16 @@ export function AppShell({
                 </button>
                 {notifOpen && (
                   <div className="absolute right-0 top-11 z-40 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-md">
-                    <p className="mb-2 text-xs font-semibold text-slate-800">Notifications</p>
+                    <p className="mb-2 text-xs font-semibold text-slate-800">{t('notifications')}</p>
                     <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                      Check low stock and open debts from the dashboard.
+                      {t('notificationsHint')}
                     </p>
                     <button
                       type="button"
                       className="mt-2 w-full text-center text-[11px] font-semibold text-teal-700"
                       onClick={() => setNotifOpen(false)}
                     >
-                      Close
+                      {t('close')}
                     </button>
                   </div>
                 )}
@@ -335,7 +337,7 @@ export function AppShell({
                 )}
               >
                 <Icon size={20} strokeWidth={active ? 2.2 : 1.7} />
-                {tab.label}
+                {t(tab.labelKey)}
               </Link>
             );
           })}

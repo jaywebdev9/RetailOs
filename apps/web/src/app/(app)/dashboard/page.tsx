@@ -39,7 +39,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [alertRows, setAlertRows] = useState<AlertRow[]>([]);
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -116,43 +116,43 @@ export default function DashboardPage() {
 
   return (
     <AppShell
-      title="Dashboard"
-      subtitle={`${todayLabel} · Welcome, ${displayName}`}
+      title={t('dashboard')}
+      subtitle={`${todayLabel} · ${t('welcome')}, ${displayName}`}
       narrow
     >
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard
-          label="Today sales"
+          label={t('todaySales')}
           value={formatMoney(data?.today?.sales ?? 0)}
-          hint={`${data?.today?.transactions ?? 0} transactions`}
+          hint={`${data?.today?.transactions ?? 0} ${t('transactions')}`}
           icon={<ShoppingCart size={15} />}
         />
         <KpiCard
-          label="Gross profit"
+          label={t('grossProfit')}
           value={formatMoney(data?.today?.grossProfit ?? 0)}
-          hint="Today"
+          hint={t('date')}
           icon={<Activity size={15} />}
         />
         <KpiCard
-          label="Low stock"
+          label={t('lowStock')}
           value={String(data?.alerts?.lowStock ?? 0)}
-          hint="Below reorder"
+          hint={t('belowReorder')}
           icon={<Package size={15} />}
         />
         <KpiCard
-          label="Open debts"
+          label={t('openDebts')}
           value={formatMoney(
             (data?.alerts?.customerDebt ?? 0) + (data?.alerts?.supplierDebt ?? 0),
           )}
-          hint="Customers & suppliers"
+          hint={t('customersSuppliers')}
           icon={<AlertTriangle size={15} />}
         />
       </section>
 
       <section className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-5">
         <div className="card p-4 lg:col-span-3">
-          <h2 className="text-sm font-semibold text-slate-900">Monthly revenue</h2>
-          <p className="text-[11px] text-slate-400">Last 12 months (illustrative)</p>
+          <h2 className="text-sm font-semibold text-slate-900">{t('monthlyRevenue')}</h2>
+          <p className="text-[11px] text-slate-400">{t('last12Months')}</p>
           <div className="mt-4 flex h-[120px] items-end gap-1.5">
             {barPx.map((h, i) => (
               <div key={i} className="flex flex-1 flex-col items-center gap-1">
@@ -167,8 +167,8 @@ export default function DashboardPage() {
         </div>
 
         <div className="card p-4 lg:col-span-2">
-          <h2 className="text-sm font-semibold text-slate-900">Inventory trend</h2>
-          <p className="text-[11px] text-slate-400">Stock movement</p>
+          <h2 className="text-sm font-semibold text-slate-900">{t('inventoryTrend')}</h2>
+          <p className="text-[11px] text-slate-400">{t('stockMovement')}</p>
           <div className="mt-3 h-[120px]">
             <svg viewBox="0 0 280 100" className="h-full w-full" preserveAspectRatio="none">
               <path
@@ -188,11 +188,11 @@ export default function DashboardPage() {
       </section>
 
       <section className="mt-4">
-        <h2 className="mb-2 text-sm font-semibold text-slate-900">Needs attention</h2>
+        <h2 className="mb-2 text-sm font-semibold text-slate-900">{t('needsAttention')}</h2>
         {alertRows.length === 0 ? (
           <EmptyState
-            title="All clear"
-            description="No active alerts right now."
+            title={t('allClear')}
+            description={t('noAlerts')}
           />
         ) : (
           <div className="space-y-2">
@@ -234,7 +234,7 @@ export default function DashboardPage() {
       </section>
 
       <section className="mt-4 pb-2">
-        <h2 className="mb-2 text-sm font-semibold text-slate-900">Quick actions</h2>
+        <h2 className="mb-2 text-sm font-semibold text-slate-900">{t('quickActions')}</h2>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
           {[
             { href: '/pos', label: 'New sale', icon: ShoppingCart },
