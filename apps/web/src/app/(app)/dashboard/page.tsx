@@ -141,7 +141,7 @@ export default function DashboardPage() {
         />
         <KpiCard
           label="Open debts"
-          value={String(
+          value={formatMoney(
             (data?.alerts?.customerDebt ?? 0) + (data?.alerts?.supplierDebt ?? 0),
           )}
           hint="Customers & suppliers"
