@@ -93,20 +93,20 @@ export default function SuppliersPage() {
             <Link href="/dashboard" className="text-sm text-slate-500">← Dashboard</Link>
             <h1 className="text-lg font-semibold">Suppliers</h1>
           </div>
-          <button onClick={() => setShowForm(!showForm)} className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white">
+          <button onClick={() => setShowForm(!showForm)} className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white">
             {showForm ? 'Cancel' : 'Add supplier'}
           </button>
         </div>
       </header>
       <main className="max-w-7xl mx-auto px-4 py-6">
         {error && <div className="mb-4 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2">{error}</div>}
-        {message && <div className="mb-4 rounded-lg bg-teal-50 text-teal-700 text-sm px-3 py-2">{message}</div>}
+        {message && <div className="mb-4 rounded-lg bg-orange-50 text-teal-700 text-sm px-3 py-2">{message}</div>}
         {showForm && (
           <form onSubmit={create} className="mb-6 bg-white rounded-xl border p-5 grid grid-cols-1 sm:grid-cols-4 gap-3">
             <input required placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-lg border px-3 py-2 text-sm" />
             <input placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="rounded-lg border px-3 py-2 text-sm" />
             <input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-lg border px-3 py-2 text-sm" />
-            <button type="submit" className="rounded-lg bg-teal-700 px-4 py-2 text-sm text-white">Save</button>
+            <button type="submit" className="rounded-lg bg-orange-500 px-4 py-2 text-sm text-white">Save</button>
           </form>
         )}
         {payFor && (
@@ -116,7 +116,7 @@ export default function SuppliersPage() {
               <p className="text-xs text-slate-500 mb-2">Outstanding: {(payFor.outstandingBalance ?? 0).toLocaleString()} TZS</p>
               <input required type="number" placeholder="Amount" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} className="rounded-lg border px-3 py-2 text-sm w-40" />
             </div>
-            <button type="submit" className="rounded-lg bg-teal-700 px-4 py-2 text-sm text-white">Record payment</button>
+            <button type="submit" className="rounded-lg bg-orange-500 px-4 py-2 text-sm text-white">Record payment</button>
             <button type="button" onClick={() => setPayFor(null)} className="text-sm text-slate-500">Cancel</button>
           </form>
         )}

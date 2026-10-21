@@ -62,7 +62,7 @@ export default function SalesHistoryPage() {
             <Link href="/dashboard" className="text-sm text-slate-500">← Dashboard</Link>
             <h1 className="text-lg font-semibold">Sales history</h1>
           </div>
-          <Link href="/pos" className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white">Open POS</Link>
+          <Link href="/pos" className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white">Open POS</Link>
         </div>
       </header>
       <main className="max-w-7xl mx-auto px-4 py-6">

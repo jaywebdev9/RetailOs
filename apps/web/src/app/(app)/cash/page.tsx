@@ -85,7 +85,7 @@ export default function CashPage() {
       </header>
       <main className="max-w-lg mx-auto px-4 py-8">
         {error && <div className="mb-4 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2">{error}</div>}
-        {message && <div className="mb-4 rounded-lg bg-teal-50 text-teal-700 text-sm px-3 py-2">{message}</div>}
+        {message && <div className="mb-4 rounded-lg bg-orange-50 text-teal-700 text-sm px-3 py-2">{message}</div>}
         {loading ? (
           <p className="text-slate-500">Loading…</p>
         ) : session ? (
@@ -100,7 +100,7 @@ export default function CashPage() {
               <label className="block text-sm font-medium mb-1">Difference reason (if any)</label>
               <input value={reason} onChange={(e) => setReason(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm" placeholder="Optional unless there is a difference" />
             </div>
-            <button onClick={closeSession} className="w-full rounded-lg bg-teal-700 py-2.5 text-sm font-medium text-white">
+            <button onClick={closeSession} className="w-full rounded-lg bg-orange-500 py-2.5 text-sm font-medium text-white">
               Close session
             </button>
           </div>
@@ -111,7 +111,7 @@ export default function CashPage() {
               <label className="block text-sm font-medium mb-1">Opening cash</label>
               <input type="number" value={openingCash} onChange={(e) => setOpeningCash(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm" />
             </div>
-            <button onClick={openSession} className="w-full rounded-lg bg-teal-700 py-2.5 text-sm font-medium text-white">
+            <button onClick={openSession} className="w-full rounded-lg bg-orange-500 py-2.5 text-sm font-medium text-white">
               Open session
             </button>
           </div>

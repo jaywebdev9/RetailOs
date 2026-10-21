@@ -120,7 +120,7 @@ export default function PurchasesPage() {
     <button
       type="button"
       onClick={() => setShowForm(!showForm)}
-      className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-teal-700 px-2.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-teal-800 sm:min-h-0 sm:px-3.5 sm:text-sm"
+      className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-orange-500 px-2.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-orange-600 sm:min-h-0 sm:px-3.5 sm:text-sm"
     >
       {showForm ? <X size={15} /> : <Plus size={15} />}
       <span>{showForm ? 'Cancel' : 'New purchase'}</span>
@@ -135,7 +135,7 @@ export default function PurchasesPage() {
         </div>
       )}
       {message && (
-        <div className="mb-4 rounded-xl bg-teal-50 px-4 py-3 text-sm text-teal-800 ring-1 ring-teal-100">
+        <div className="mb-4 rounded-xl bg-orange-50 px-4 py-3 text-sm text-orange-800 ring-1 ring-orange-100">
           {message}
         </div>
       )}
@@ -185,7 +185,7 @@ export default function PurchasesPage() {
           />
           <button
             type="submit"
-            className="rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800"
+            className="rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-orange-600"
           >
             Create
           </button>
@@ -206,7 +206,7 @@ export default function PurchasesPage() {
             <button
               type="button"
               onClick={() => setShowForm(true)}
-              className="rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white"
+              className="rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white"
             >
               New purchase
             </button>
@@ -243,7 +243,7 @@ export default function PurchasesPage() {
                       <button
                         type="button"
                         onClick={() => receiveAll(p)}
-                        className="rounded-xl bg-teal-50 px-3.5 py-2 text-xs font-semibold text-teal-800 ring-1 ring-teal-100 hover:bg-teal-100"
+                        className="rounded-xl bg-orange-50 px-3.5 py-2 text-xs font-semibold text-orange-800 ring-1 ring-orange-100 hover:bg-orange-100"
                       >
                         Receive stock
                       </button>

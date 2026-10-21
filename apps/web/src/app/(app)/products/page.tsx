@@ -236,7 +236,7 @@ export default function ProductsPage() {
           setShowForm(!showForm);
           setShowImport(false);
         }}
-        className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-teal-700 px-2.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-teal-800 sm:min-h-0 sm:px-3.5 sm:text-sm"
+        className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-orange-500 px-2.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-orange-600 sm:min-h-0 sm:px-3.5 sm:text-sm"
       >
         {showForm ? <X size={15} /> : <Plus size={15} />}
         <span>{showForm ? 'Cancel' : 'Add product'}</span>
@@ -270,7 +270,7 @@ export default function ProductsPage() {
         <button
           type="button"
           onClick={() => savePrices(product.id)}
-          className="mt-2 rounded-lg bg-teal-700 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-800"
+          className="mt-2 rounded-lg bg-orange-500 px-3 py-2 text-xs font-semibold text-white hover:bg-orange-600"
         >
           Save prices
         </button>
@@ -350,7 +350,7 @@ export default function ProductsPage() {
         </div>
       )}
       {importResult && (
-        <div className="mb-4 rounded-xl bg-teal-50 px-4 py-3 text-sm text-teal-800 ring-1 ring-teal-100">
+        <div className="mb-4 rounded-xl bg-orange-50 px-4 py-3 text-sm text-orange-800 ring-1 ring-orange-100">
           {importResult}
         </div>
       )}
@@ -373,7 +373,7 @@ export default function ProductsPage() {
             type="button"
             disabled={saving}
             onClick={importCsv}
-            className="mt-3 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            className="mt-3 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
           >
             {saving ? 'Importing…' : 'Import products'}
           </button>
@@ -432,7 +432,7 @@ export default function ProductsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-xl bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
             >
               {saving ? 'Saving…' : 'Save product'}
             </button>
@@ -454,7 +454,7 @@ export default function ProductsPage() {
             <button
               type="button"
               onClick={() => setShowForm(true)}
-              className="rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white"
+              className="rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white"
             >
               Add product
             </button>
@@ -531,7 +531,7 @@ export default function ProductsPage() {
                     <button
                       type="button"
                       onClick={() => openEditor(p)}
-                      className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-xs font-semibold text-teal-700 hover:bg-teal-50"
+                      className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-xs font-semibold text-teal-700 hover:bg-orange-50"
                     >
                       {isOpen ? 'Close' : 'Prices & packs'}
                     </button>
