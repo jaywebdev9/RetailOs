@@ -17,10 +17,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: 'cover',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f7f4f1' },
-    { media: '(prefers-color-scheme: dark)', color: '#1a1a1a' },
-  ],
+  themeColor: '#f6f8fb',
 };
 
 export default function RootLayout({
@@ -30,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-[100dvh] antialiased">
+      <body className="antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

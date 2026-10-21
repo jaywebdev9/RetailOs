@@ -94,7 +94,7 @@ export default function ReturnsPage() {
       </header>
       <main className="max-w-7xl mx-auto px-4 py-6">
         {error && <div className="mb-4 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2">{error}</div>}
-        {message && <div className="mb-4 rounded-lg bg-orange-50 text-teal-700 text-sm px-3 py-2">{message}</div>}
+        {message && <div className="mb-4 rounded-lg bg-teal-50 text-teal-700 text-sm px-3 py-2">{message}</div>}
 
         {loading ? (
           <p className="text-slate-500">Loading…</p>
@@ -157,7 +157,7 @@ export default function ReturnsPage() {
               onChange={(e) => setReason(e.target.value)}
               className="w-full rounded-lg border px-3 py-2 text-sm"
             />
-            <button onClick={submitReturn} className="rounded-lg bg-orange-500 px-6 py-2.5 text-sm font-medium text-white">
+            <button onClick={submitReturn} className="rounded-lg bg-teal-700 px-6 py-2.5 text-sm font-medium text-white">
               Process return
             </button>
           </div>

@@ -4,8 +4,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Activity, AlertTriangle, ArrowRight, Banknote, ChartNoAxesCombined,
-  ClipboardList, Package, ShoppingCart, Users,
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  Banknote,
+  ChartNoAxesCombined,
+  ClipboardList,
+  Package,
+  ShoppingCart,
+  Users,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n';
@@ -24,7 +31,7 @@ type DashboardData = {
   alerts: { lowStock: number; customerDebt: number; supplierDebt: number };
 };
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -57,7 +64,7 @@ export default function DashboardPage() {
           setData(dash.data);
           api
             .get('/alerts', { headers: { 'x-business-id': bid } })
-            .then((r) => setAlertRows(r.data || []))
+            .then((r) => setAlertRows(Array.isArray(r.data) ? r.data : r.data?.items || []))
             .catch(() => {});
         }
       } catch {
@@ -74,7 +81,7 @@ export default function DashboardPage() {
       style: 'currency',
       currency: 'TZS',
       maximumFractionDigits: 0,
-    }).format(n);
+    }).format(n || 0);
 
   const todayLabel = useMemo(
     () =>
@@ -89,17 +96,17 @@ export default function DashboardPage() {
   const displayName =
     [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'there';
 
-  /* Simple demo bar heights for revenue chart (visual only) */
-  const barHeights = [40, 55, 35, 70, 50, 85, 60, 75, 45, 90, 65, 80];
+  /* Visual placeholder heights (px) so bars always render */
+  const barPx = [28, 40, 24, 52, 36, 64, 44, 56, 32, 68, 48, 60];
 
   if (loading) {
     return (
-      <div className="min-h-[100dvh] bg-[var(--background)] p-4">
-        <div className="mx-auto max-w-6xl animate-pulse space-y-4">
-          <div className="h-12 rounded-2xl bg-white" />
+      <div className="min-h-screen bg-[#f6f8fb] p-4">
+        <div className="mx-auto max-w-5xl animate-pulse space-y-3">
+          <div className="h-10 rounded-xl bg-white" />
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="h-28 rounded-2xl bg-white" />
+              <div key={n} className="h-24 rounded-xl bg-white" />
             ))}
           </div>
         </div>
@@ -113,223 +120,142 @@ export default function DashboardPage() {
       subtitle={`${todayLabel} · Welcome, ${displayName}`}
       narrow
     >
-      {/* KPI row */}
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard
-          label="Total revenue"
+          label="Today sales"
           value={formatMoney(data?.today?.sales ?? 0)}
-          trend="+8.2%"
-          trendUp
-          hint="Today"
-          icon={<ShoppingCart size={16} />}
-        />
-        <KpiCard
-          label="Orders"
-          value={String(data?.today?.transactions ?? 0)}
-          trend="+4.1%"
-          trendUp
-          hint="Today"
-          icon={<ClipboardList size={16} />}
-        />
-        <KpiCard
-          label="Low stock"
-          value={String(data?.alerts?.lowStock ?? 0)}
-          trend={data?.alerts?.lowStock ? 'Alert' : 'OK'}
-          trendUp={!data?.alerts?.lowStock}
-          hint="Items"
-          icon={<Package size={16} />}
+          hint={`${data?.today?.transactions ?? 0} transactions`}
+          icon={<ShoppingCart size={15} />}
         />
         <KpiCard
           label="Gross profit"
           value={formatMoney(data?.today?.grossProfit ?? 0)}
-          trend="+2.5%"
-          trendUp
           hint="Today"
-          icon={<Activity size={16} />}
+          icon={<Activity size={15} />}
+        />
+        <KpiCard
+          label="Low stock"
+          value={String(data?.alerts?.lowStock ?? 0)}
+          hint="Below reorder"
+          icon={<Package size={15} />}
+        />
+        <KpiCard
+          label="Open debts"
+          value={String(
+            (data?.alerts?.customerDebt ?? 0) + (data?.alerts?.supplierDebt ?? 0),
+          )}
+          hint="Customers & suppliers"
+          icon={<AlertTriangle size={15} />}
         />
       </section>
 
-      {/* Charts row */}
       <section className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-5">
-        {/* Monthly revenue bars */}
-        <div className="card p-4 sm:p-5 lg:col-span-3">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">Monthly revenue</h2>
-              <p className="text-[11px] text-slate-400">Past 12 months performance</p>
-            </div>
-          </div>
-          <div className="flex h-40 items-end gap-1.5 sm:gap-2">
-            {barHeights.map((h, i) => (
-              <div key={MONTHS[i]} className="flex flex-1 flex-col items-center gap-1">
+        <div className="card p-4 lg:col-span-3">
+          <h2 className="text-sm font-semibold text-slate-900">Monthly revenue</h2>
+          <p className="text-[11px] text-slate-400">Last 12 months (illustrative)</p>
+          <div className="mt-4 flex h-[120px] items-end gap-1.5">
+            {barPx.map((h, i) => (
+              <div key={i} className="flex flex-1 flex-col items-center gap-1">
                 <div
-                  className="chart-bar w-full max-w-[28px]"
-                  style={{ height: `${h}%` }}
-                  title={MONTHS[i]}
+                  className="w-full max-w-[22px] rounded-t bg-teal-600/90"
+                  style={{ height: h }}
                 />
-                <span className="text-[9px] font-medium text-slate-400 sm:text-[10px]">
-                  {MONTHS[i]}
-                </span>
+                <span className="text-[9px] text-slate-400">{MONTHS[i]}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Inventory trend line placeholder */}
-        <div className="card p-4 sm:p-5 lg:col-span-2">
-          <div className="mb-4">
-            <h2 className="text-sm font-bold text-slate-900">Inventory trends</h2>
-            <p className="text-[11px] text-slate-400">Stock movement overview</p>
-          </div>
-          <div className="relative h-40">
-            <svg viewBox="0 0 300 120" className="h-full w-full" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f97316" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
-                </linearGradient>
-              </defs>
+        <div className="card p-4 lg:col-span-2">
+          <h2 className="text-sm font-semibold text-slate-900">Inventory trend</h2>
+          <p className="text-[11px] text-slate-400">Stock movement</p>
+          <div className="mt-3 h-[120px]">
+            <svg viewBox="0 0 280 100" className="h-full w-full" preserveAspectRatio="none">
               <path
-                d="M0,90 C40,70 60,100 100,55 C140,20 160,50 200,40 C240,30 270,55 300,35 L300,120 L0,120 Z"
-                fill="url(#areaGrad)"
+                d="M0,70 C35,55 55,80 90,45 C125,15 145,40 180,32 C215,24 245,48 280,28 L280,100 L0,100 Z"
+                fill="#ccfbf1"
               />
               <path
-                d="M0,90 C40,70 60,100 100,55 C140,20 160,50 200,40 C240,30 270,55 300,35"
+                d="M0,70 C35,55 55,80 90,45 C125,15 145,40 180,32 C215,24 245,48 280,28"
                 fill="none"
-                stroke="#f97316"
-                strokeWidth="2.5"
+                stroke="#0f766e"
+                strokeWidth="2"
                 strokeLinecap="round"
               />
             </svg>
           </div>
-          <div className="mt-2 flex gap-4 text-[11px]">
-            <span className="flex items-center gap-1.5 text-slate-500">
-              <span className="h-2 w-2 rounded-full bg-orange-500" /> In stock
-            </span>
-            <span className="flex items-center gap-1.5 text-slate-500">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" /> Sold
-            </span>
-          </div>
         </div>
       </section>
 
-      {/* Needs attention */}
       <section className="mt-4">
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-bold text-slate-900">Needs attention</h2>
-            <p className="text-[11px] text-slate-400">Alerts & low stock</p>
-          </div>
-        </div>
+        <h2 className="mb-2 text-sm font-semibold text-slate-900">Needs attention</h2>
         {alertRows.length === 0 ? (
           <EmptyState
             title="All clear"
-            description="No active alerts. Stock and debts look healthy."
+            description="No active alerts right now."
           />
         ) : (
-          <>
-            {/* Mobile cards */}
-            <div className="space-y-2 md:hidden">
-              {alertRows.slice(0, 6).map((a) => (
-                <div key={a.id} className="card flex items-start gap-3 p-3.5">
-                  <span
-                    className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-                      a.severity === 'CRITICAL'
-                        ? 'bg-rose-50 text-rose-600'
-                        : a.severity === 'WARNING'
-                          ? 'bg-amber-50 text-amber-600'
-                          : 'bg-sky-50 text-sky-600'
-                    }`}
-                  >
-                    <AlertTriangle size={16} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-slate-900">{a.title}</p>
-                      <StatusBadge
-                        status={a.severity}
-                        tone={
-                          a.severity === 'CRITICAL'
-                            ? 'danger'
-                            : a.severity === 'WARNING'
-                              ? 'warning'
-                              : 'info'
-                        }
-                      />
-                    </div>
-                    {a.body && (
-                      <p className="mt-0.5 text-xs text-slate-500">{a.body}</p>
-                    )}
+          <div className="space-y-2">
+            {alertRows.slice(0, 8).map((a) => (
+              <div key={a.id} className="card flex items-start gap-3 p-3">
+                <span
+                  className={
+                    a.severity === 'CRITICAL'
+                      ? 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600'
+                      : a.severity === 'WARNING'
+                        ? 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600'
+                        : 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600'
+                  }
+                >
+                  <AlertTriangle size={14} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-medium text-slate-900">{a.title}</p>
+                    <StatusBadge
+                      status={a.severity}
+                      tone={
+                        a.severity === 'CRITICAL'
+                          ? 'danger'
+                          : a.severity === 'WARNING'
+                            ? 'warning'
+                            : 'info'
+                      }
+                    />
                   </div>
+                  {a.body && (
+                    <p className="mt-0.5 text-xs text-slate-500">{a.body}</p>
+                  )}
                 </div>
-              ))}
-            </div>
-            {/* Desktop table */}
-            <div className="card hidden overflow-hidden md:block">
-              <div className="table-scroll">
-                <table className="w-full min-w-[560px] text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-[var(--border)] bg-[var(--muted)]/50 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                      <th className="px-5 py-3">Alert</th>
-                      <th className="px-4 py-3">Severity</th>
-                      <th className="px-4 py-3">Details</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {alertRows.slice(0, 8).map((a) => (
-                      <tr key={a.id} className="border-b border-[var(--border)] last:border-0">
-                        <td className="px-5 py-3.5 font-medium text-slate-800">{a.title}</td>
-                        <td className="px-4 py-3.5">
-                          <StatusBadge
-                            status={a.severity}
-                            tone={
-                              a.severity === 'CRITICAL'
-                                ? 'danger'
-                                : a.severity === 'WARNING'
-                                  ? 'warning'
-                                  : 'info'
-                            }
-                          />
-                        </td>
-                        <td className="px-4 py-3.5 text-slate-500">{a.body || '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
-            </div>
-          </>
+            ))}
+          </div>
         )}
       </section>
 
-      {/* Quick actions */}
-      <section className="mt-4">
-        <h2 className="mb-3 text-sm font-bold text-slate-900">Quick actions</h2>
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6">
+      <section className="mt-4 pb-2">
+        <h2 className="mb-2 text-sm font-semibold text-slate-900">Quick actions</h2>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
           {[
-            { href: '/pos', label: 'New sale', detail: 'Checkout', icon: ShoppingCart },
-            { href: '/products', label: 'Products', detail: 'Catalog', icon: Package },
-            { href: '/purchases', label: 'Purchase', detail: 'Restock', icon: ClipboardList },
-            { href: '/customers', label: 'Customers', detail: 'Balances', icon: Users },
-            { href: '/cash', label: 'Cash book', detail: 'Movements', icon: Banknote },
-            { href: '/reports', label: 'Reports', detail: 'Insights', icon: ChartNoAxesCombined },
-          ].map((action) => {
-            const Icon = action.icon;
+            { href: '/pos', label: 'New sale', icon: ShoppingCart },
+            { href: '/products', label: 'Products', icon: Package },
+            { href: '/purchases', label: 'Purchase', icon: ClipboardList },
+            { href: '/customers', label: 'Customers', icon: Users },
+            { href: '/cash', label: 'Cash', icon: Banknote },
+            { href: '/reports', label: 'Reports', icon: ChartNoAxesCombined },
+          ].map((a) => {
+            const Icon = a.icon;
             return (
               <Link
-                key={action.href}
-                href={action.href}
-                className="card group flex min-h-[100px] flex-col p-3.5 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-elevated)]"
+                key={a.href}
+                href={a.href}
+                className="card flex items-center gap-2.5 p-3 transition hover:border-teal-200 hover:bg-teal-50/40"
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
-                  <Icon size={18} />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
+                  <Icon size={16} />
                 </span>
-                <span className="mt-2.5 text-xs font-bold text-slate-800">{action.label}</span>
-                <span className="text-[10px] text-slate-400">{action.detail}</span>
-                <ArrowRight
-                  size={14}
-                  className="mt-auto hidden self-end text-slate-300 group-hover:text-orange-500 sm:block"
-                />
+                <span className="text-xs font-semibold text-slate-800">{a.label}</span>
+                <ArrowRight size={12} className="ml-auto text-slate-300" />
               </Link>
             );
           })}

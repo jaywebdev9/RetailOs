@@ -1,25 +1,20 @@
-# Retail OS — Professional UI/UX Redesign v2
+# Retail OS UI v3
 
-Matched to modern inventory / POS reference designs (soft cream surfaces, orange accent, light sidebar, notification bell, charts, mobile bottom tabs).
+## Fixes
+- Primary color restored to **teal** (`#0f766e`)
+- **Home page scroll fixed**: document scroll enabled; bottom nav no longer traps content
+- Chart bars use fixed pixel heights (always visible)
+- Navigation: light sidebar + bottom tabs with teal active state
+- Notification bell kept
+- Buttons on list pages back to teal
 
-## Visual system
-- Background: warm cream `#f7f4f1`
-- Primary: orange `#f97316` (active nav, CTAs, charts)
-- Cards: white, soft shadow, large radius
-- Light sidebar (not dark) with orange active pill
-- Notification bell with badge + dropdown
-- Search in top bar
-- Store avatar chip
-- Mobile bottom tab bar (Home, POS, Stock, Orders, More)
-- Safe-area insets for notched phones
-
-## Screens
-- **Dashboard**: KPI cards with trend badges, monthly revenue bars, inventory trend area chart, needs-attention list/table, quick actions
-- **List pages**: primary buttons switched to orange for brand consistency; table-scroll preserved
+## Note on "Failed to load data"
+Those messages come from **API responses** (network, auth, business id, or backend), not from this UI layer. UI still shows empty/error states correctly.
 
 ## Apply
 ```bash
-# from retail-os project root
-unzip -o retail-os-ui-pro.zip
+unzip -o retail-os-ui-v3.zip
+git add apps/web UI-UX-CHANGES.md
+git commit -m "UI v3: teal brand, fix dashboard scroll, clean navigation"
+git push origin main
 ```
-Then commit & push / redeploy web app.

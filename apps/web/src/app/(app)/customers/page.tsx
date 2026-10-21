@@ -120,7 +120,7 @@ export default function CustomersPage() {
             <Link href="/dashboard" className="text-sm text-slate-500">← Dashboard</Link>
             <h1 className="text-lg font-semibold">Customers</h1>
           </div>
-          <button onClick={() => setShowForm(!showForm)} className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white">
+          <button onClick={() => setShowForm(!showForm)} className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white">
             {showForm ? 'Cancel' : 'Add customer'}
           </button>
         </div>
@@ -144,7 +144,7 @@ export default function CustomersPage() {
               onChange={(e) => setForm({ ...form, creditLimit: e.target.value })} className="rounded-lg border px-3 py-2 text-sm" />
             <input type="number" placeholder="Pays within (days)" value={form.paymentTermsDays}
               onChange={(e) => setForm({ ...form, paymentTermsDays: e.target.value })} className="rounded-lg border px-3 py-2 text-sm" />
-            <button type="submit" className="rounded-lg bg-orange-500 px-4 py-2 text-sm text-white">Save</button>
+            <button type="submit" className="rounded-lg bg-teal-700 px-4 py-2 text-sm text-white">Save</button>
           </form>
         )}
 
@@ -250,7 +250,7 @@ export default function CustomersPage() {
                         <span className="inline-flex gap-1">
                           <input type="number" autoFocus value={payAmount} onChange={(e) => setPayAmount(e.target.value)}
                             placeholder="Amount" className="w-24 rounded border px-2 py-1 text-xs" />
-                          <button onClick={() => recordPayment(c.id)} className="rounded bg-orange-500 text-white px-2 text-xs">Save</button>
+                          <button onClick={() => recordPayment(c.id)} className="rounded bg-teal-700 text-white px-2 text-xs">Save</button>
                           <button onClick={() => setPayFor(null)} className="text-xs text-slate-500">✕</button>
                         </span>
                       ) : (

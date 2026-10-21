@@ -58,7 +58,7 @@ export function SubscriptionBanner() {
     tone = 'bg-red-100 text-red-800';
     text = t('bill_graceMsg');
   } else if (status.state === 'TRIALING') {
-    tone = days <= 3 ? 'bg-amber-50 text-amber-900' : 'bg-orange-50 text-orange-900';
+    tone = days <= 3 ? 'bg-amber-50 text-amber-900' : 'bg-teal-50 text-teal-900';
     text = `${days} ${t('bill_trialLeft')}`;
   } else if (status.daysLeft <= 7) {
     tone = 'bg-amber-50 text-amber-900';

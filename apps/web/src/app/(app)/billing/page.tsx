@@ -121,7 +121,7 @@ export default function BillingPage() {
 
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {error && <div className="rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2">{error}</div>}
-        {message && <div className="rounded-lg bg-orange-50 text-orange-800 text-sm px-3 py-2">{message}</div>}
+        {message && <div className="rounded-lg bg-teal-50 text-teal-800 text-sm px-3 py-2">{message}</div>}
 
         {status && (
           <section className="bg-white rounded-xl border p-5">
@@ -153,7 +153,7 @@ export default function BillingPage() {
                   <p className="text-xs text-slate-500">{money(p.perMonthTzs)} {t('bill_perMonth')}</p>
                 )}
                 {p.savingsPercent > 0 && (
-                  <span className="inline-block mt-2 rounded-full bg-teal-100 text-orange-800 text-xs px-2 py-0.5">
+                  <span className="inline-block mt-2 rounded-full bg-teal-100 text-teal-800 text-xs px-2 py-0.5">
                     {t('bill_save')} {p.savingsPercent}%
                   </span>
                 )}
@@ -197,7 +197,7 @@ export default function BillingPage() {
                   className="w-full rounded-lg border px-3 py-2 text-sm" />
               </div>
               <button type="submit" disabled={busy || !selected}
-                className="sm:col-span-3 rounded-lg bg-orange-500 text-white py-2.5 text-sm font-medium disabled:opacity-50">
+                className="sm:col-span-3 rounded-lg bg-teal-700 text-white py-2.5 text-sm font-medium disabled:opacity-50">
                 {busy ? '…' : t('bill_submit')}
               </button>
             </form>

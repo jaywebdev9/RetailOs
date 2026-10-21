@@ -73,7 +73,7 @@ export default function ExpensesPage() {
             <Link href="/dashboard" className="text-sm text-slate-500">← Dashboard</Link>
             <h1 className="text-lg font-semibold">Expenses</h1>
           </div>
-          <button onClick={() => setShowForm(!showForm)} className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white">
+          <button onClick={() => setShowForm(!showForm)} className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white">
             {showForm ? 'Cancel' : 'Add expense'}
           </button>
         </div>
@@ -88,7 +88,7 @@ export default function ExpensesPage() {
             </select>
             <input required type="number" placeholder="Amount" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="rounded-lg border px-3 py-2 text-sm" />
             <input placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="rounded-lg border px-3 py-2 text-sm" />
-            <button type="submit" className="rounded-lg bg-orange-500 px-4 py-2 text-sm text-white">Save</button>
+            <button type="submit" className="rounded-lg bg-teal-700 px-4 py-2 text-sm text-white">Save</button>
           </form>
         )}
         {loading ? <p className="text-slate-500">Loading…</p> : items.length === 0 ? (
