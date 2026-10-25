@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "nest build",
+    "build": "npx nest build",
     "dev": "nest start --watch",
     "start": "node dist/main",
     "start:prod": "node dist/main",
@@ -32,10 +32,10 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "uuid": "^11.1.0",
-    "nodemailer": "^6.9.16"
+    "nodemailer": "^6.9.16",
+    "@nestjs/cli": "^11.0.5"
   },
   "devDependencies": {
-    "@nestjs/cli": "^11.0.5",
     "@nestjs/schematics": "^11.0.2",
     "@nestjs/testing": "^11.0.12",
     "@types/bcrypt": "^5.0.2",
