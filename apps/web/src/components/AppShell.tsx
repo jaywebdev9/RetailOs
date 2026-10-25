@@ -413,12 +413,12 @@ export function KpiCard({
   icon,
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   hint?: string;
   icon?: ReactNode;
 }) {
   return (
-    <div className="card p-4">
+    <div className="card animate-fade-in p-4">
       <div className="flex items-start justify-between gap-2">
         <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
           {label}
