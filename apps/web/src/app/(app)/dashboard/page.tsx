@@ -17,6 +17,8 @@ import {
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n';
 import { AppShell, EmptyState, KpiCard, StatusBadge } from '@/components/AppShell';
+import { AnimatedNumber } from '@/components/motion/AnimatedNumber';
+import { AnimatedBars } from '@/components/motion/AnimatedBars';
 
 type AlertRow = {
   id: string;
@@ -123,27 +125,45 @@ export default function DashboardPage() {
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard
           label={t('todaySales')}
-          value={formatMoney(data?.today?.sales ?? 0)}
+          value={
+            <AnimatedNumber
+              value={data?.today?.sales ?? 0}
+              format={(n) => formatMoney(n)}
+            />
+          }
           hint={`${data?.today?.transactions ?? 0} ${t('transactions')}`}
           icon={<ShoppingCart size={15} />}
         />
         <KpiCard
           label={t('grossProfit')}
-          value={formatMoney(data?.today?.grossProfit ?? 0)}
+          value={
+            <AnimatedNumber
+              value={data?.today?.grossProfit ?? 0}
+              format={(n) => formatMoney(n)}
+            />
+          }
           hint={t('date')}
           icon={<Activity size={15} />}
         />
         <KpiCard
           label={t('lowStock')}
-          value={String(data?.alerts?.lowStock ?? 0)}
+          value={
+            <AnimatedNumber value={data?.alerts?.lowStock ?? 0} />
+          }
           hint={t('belowReorder')}
           icon={<Package size={15} />}
         />
         <KpiCard
           label={t('openDebts')}
-          value={formatMoney(
-            (data?.alerts?.customerDebt ?? 0) + (data?.alerts?.supplierDebt ?? 0),
-          )}
+          value={
+            <AnimatedNumber
+              value={
+                (data?.alerts?.customerDebt ?? 0) +
+                (data?.alerts?.supplierDebt ?? 0)
+              }
+              format={(n) => formatMoney(n)}
+            />
+          }
           hint={t('customersSuppliers')}
           icon={<AlertTriangle size={15} />}
         />
@@ -153,16 +173,8 @@ export default function DashboardPage() {
         <div className="card p-4 lg:col-span-3">
           <h2 className="text-sm font-semibold text-slate-900">{t('monthlyRevenue')}</h2>
           <p className="text-[11px] text-slate-400">{t('last12Months')}</p>
-          <div className="mt-4 flex h-[120px] items-end gap-1.5">
-            {barPx.map((h, i) => (
-              <div key={i} className="flex flex-1 flex-col items-center gap-1">
-                <div
-                  className="w-full max-w-[22px] rounded-t bg-teal-600/90"
-                  style={{ height: h }}
-                />
-                <span className="text-[9px] text-slate-400">{MONTHS[i]}</span>
-              </div>
-            ))}
+          <div className="mt-4">
+            <AnimatedBars heights={barPx} labels={MONTHS} />
           </div>
         </div>
 

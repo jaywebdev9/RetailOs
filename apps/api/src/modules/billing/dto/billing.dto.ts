@@ -59,6 +59,17 @@ export class UpdateBillingSettingsDto {
   @IsString()
   @MaxLength(40)
   supportPhone?: string;
+
+  @ApiPropertyOptional({ description: 'true = maintenance mode banner for all shops' })
+  @IsOptional()
+  @IsBoolean()
+  maintenanceMode?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  maintenanceMessage?: string;
 }
 
 export class GrantDaysDto {
@@ -72,4 +83,16 @@ export class GrantDaysDto {
   @IsOptional()
   @IsUUID()
   planId?: string;
+}
+
+export class SetBusinessActiveDto {
+  @ApiProperty({ example: false, description: 'false = suspend shop' })
+  @IsBoolean()
+  isActive: boolean;
+}
+
+export class SetPlatformAdminDto {
+  @ApiProperty()
+  @IsBoolean()
+  isPlatformAdmin: boolean;
 }

@@ -19,7 +19,8 @@ model User {
   id                String    @id @default(uuid()) @db.Uuid
   email             String?   @unique
   phone             String?   @unique
-  passwordHash      String
+  passwordHash      String?
+  googleId          String?   @unique
   firstName         String
   lastName          String?
   isEmailVerified   Boolean   @default(false)
@@ -33,6 +34,7 @@ model User {
 
   memberships       BusinessMember[]
   refreshTokens     RefreshToken[]
+  authTokens        AuthToken[]
   auditLogs         AuditLog[]
   salesAsCashier    Sale[]              @relation("CashierSales")
   inventoryTxns     InventoryTransaction[]
@@ -62,6 +64,24 @@ model RefreshToken {
   @@index([tokenHash])
   @@map("refresh_tokens")
 }
+
+
+model AuthToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  type      String    // EMAIL_VERIFY | PASSWORD_RESET
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId, type])
+  @@map("auth_tokens")
+}
+
 
 model Business {
   id              String   @id @default(uuid()) @db.Uuid

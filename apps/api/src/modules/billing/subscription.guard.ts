@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { SKIP_SUBSCRIPTION_KEY } from './skip-subscription.decorator';
 import { SubscriptionStateService } from './subscription-state.service';
+import { PrismaService } from '../../database/prisma.service';
 import { computeAccess } from '../../common/subscription-state';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -26,6 +27,7 @@ export class SubscriptionGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly state: SubscriptionStateService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
@@ -42,6 +44,21 @@ export class SubscriptionGuard implements CanActivate {
     const header = req.headers['x-business-id'];
     const businessId = Array.isArray(header) ? header[0] : header;
     if (!businessId || !UUID.test(businessId)) return true; // not a business-scoped call
+
+    const biz = await this.prisma.business.findUnique({
+      where: { id: businessId },
+      select: { isActive: true },
+    });
+    if (biz && !biz.isActive) {
+      throw new HttpException(
+        {
+          statusCode: 403,
+          code: 'BUSINESS_SUSPENDED',
+          message: 'This shop has been suspended. Contact support.',
+        },
+        403,
+      );
+    }
 
     const sub = await this.state.get(businessId);
     if (!sub) return true; // unknown business: the normal guards will reject it

@@ -9,7 +9,12 @@ import {
   addMonths,
   computeAccess,
 } from '../../common/subscription-state';
-import { SETTING_INSTRUCTIONS, SETTING_SUPPORT_PHONE } from './billing.constants';
+import {
+  SETTING_INSTRUCTIONS,
+  SETTING_SUPPORT_PHONE,
+  SETTING_MAINTENANCE,
+  SETTING_MAINTENANCE_MSG,
+} from './billing.constants';
 
 @Injectable()
 export class AdminBillingService {
@@ -202,6 +207,9 @@ export class AdminBillingService {
       return {
         id: b.id,
         name: b.name,
+        phone: b.phone,
+        businessType: b.businessType,
+        isActive: b.isActive,
         createdAt: b.createdAt,
         ownerName: owner ? `${owner.firstName} ${owner.lastName ?? ''}`.trim() : '',
         ownerPhone: owner?.phone || b.phone,
@@ -241,9 +249,21 @@ export class AdminBillingService {
   }
 
   async settings() {
+    const maint = await this.billing.setting(SETTING_MAINTENANCE, 'false');
     return {
-      paymentInstructions: await this.billing.setting(SETTING_INSTRUCTIONS, process.env.BILLING_PAY_INSTRUCTIONS || ''),
-      supportPhone: await this.billing.setting(SETTING_SUPPORT_PHONE, process.env.BILLING_SUPPORT_PHONE || ''),
+      paymentInstructions: await this.billing.setting(
+        SETTING_INSTRUCTIONS,
+        process.env.BILLING_PAY_INSTRUCTIONS || '',
+      ),
+      supportPhone: await this.billing.setting(
+        SETTING_SUPPORT_PHONE,
+        process.env.BILLING_SUPPORT_PHONE || '',
+      ),
+      maintenanceMode: maint === 'true' || maint === '1',
+      maintenanceMessage: await this.billing.setting(
+        SETTING_MAINTENANCE_MSG,
+        'We are performing maintenance. Please try again shortly.',
+      ),
     };
   }
 
@@ -252,6 +272,12 @@ export class AdminBillingService {
       [SETTING_INSTRUCTIONS, dto.paymentInstructions],
       [SETTING_SUPPORT_PHONE, dto.supportPhone],
     ];
+    if (dto.maintenanceMode !== undefined) {
+      entries.push([SETTING_MAINTENANCE, dto.maintenanceMode ? 'true' : 'false']);
+    }
+    if (dto.maintenanceMessage !== undefined) {
+      entries.push([SETTING_MAINTENANCE_MSG, dto.maintenanceMessage]);
+    }
     for (const [key, value] of entries) {
       if (value === undefined) continue;
       await this.prisma.platformSetting.upsert({
@@ -261,5 +287,311 @@ export class AdminBillingService {
       });
     }
     return this.settings();
+  }
+
+  async setBusinessActive(businessId: string, adminId: string, isActive: boolean) {
+    const b = await this.prisma.business.findUnique({ where: { id: businessId } });
+    if (!b) throw new NotFoundException('Business not found');
+    await this.prisma.business.update({
+      where: { id: businessId },
+      data: { isActive },
+    });
+    await this.prisma.auditLog.create({
+      data: {
+        businessId,
+        userId: adminId,
+        action: isActive ? 'BUSINESS_ACTIVATE' : 'BUSINESS_SUSPEND',
+        entityType: 'Business',
+        entityId: businessId,
+        oldValues: { isActive: b.isActive },
+        newValues: { isActive },
+      },
+    });
+    this.state.invalidate(businessId);
+    return { ok: true, isActive };
+  }
+
+  async forceExpire(businessId: string, adminId: string) {
+    const sub = await this.prisma.subscription.findUnique({ where: { businessId } });
+    if (!sub) throw new NotFoundException('Subscription not found');
+    const now = new Date();
+    await this.prisma.subscription.update({
+      where: { id: sub.id },
+      data: {
+        status: 'EXPIRED',
+        currentPeriodEnd: now,
+        trialEndsAt: sub.trialEndsAt > now ? now : sub.trialEndsAt,
+        graceEndsAt: now,
+      },
+    });
+    await this.prisma.auditLog.create({
+      data: {
+        businessId,
+        userId: adminId,
+        action: 'BILLING_FORCE_EXPIRE',
+        entityType: 'Subscription',
+        entityId: sub.id,
+        newValues: { status: 'EXPIRED' },
+      },
+    });
+    this.state.invalidate(businessId);
+    return { ok: true };
+  }
+
+  async businessDetail(businessId: string) {
+    const b = await this.prisma.business.findUnique({
+      where: { id: businessId },
+      include: {
+        subscription: { include: { plan: true } },
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+                email: true,
+                isActive: true,
+              },
+            },
+            role: { select: { name: true } },
+          },
+        },
+      },
+    });
+    if (!b) throw new NotFoundException('Business not found');
+    const info = b.subscription ? computeAccess(b.subscription) : null;
+    const payments = await this.prisma.subscriptionPayment.findMany({
+      where: { businessId },
+      include: { plan: { select: { name: true, months: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+    return {
+      id: b.id,
+      name: b.name,
+      phone: b.phone,
+      email: b.email,
+      address: b.address,
+      businessType: b.businessType,
+      isActive: b.isActive,
+      createdAt: b.createdAt,
+      subscription: info
+        ? {
+            state: info.state,
+            daysLeft: info.daysLeft,
+            endsAt: info.endsAt,
+            plan: b.subscription?.plan?.name ?? null,
+          }
+        : null,
+      members: b.members.map((m) => ({
+        id: m.user.id,
+        name: `${m.user.firstName} ${m.user.lastName ?? ''}`.trim(),
+        phone: m.user.phone,
+        email: m.user.email,
+        role: m.role?.name,
+        isOwner: m.isOwner,
+        isActive: m.user.isActive && m.isActive,
+      })),
+      payments: payments.map((r) => ({
+        id: r.id,
+        plan: r.plan.name,
+        months: r.plan.months,
+        amount: r.amount.toNumber(),
+        method: r.method,
+        reference: r.reference,
+        status: r.status,
+        rejectReason: r.rejectReason,
+        createdAt: r.createdAt,
+      })),
+    };
+  }
+
+  async summary() {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const [
+      pending,
+      confirmedMonth,
+      confirmedAll,
+      businesses,
+      activeBiz,
+      suspended,
+      trialing,
+      expired,
+    ] = await Promise.all([
+      this.prisma.subscriptionPayment.count({ where: { status: 'PENDING' } }),
+      this.prisma.subscriptionPayment.aggregate({
+        where: { status: 'CONFIRMED', createdAt: { gte: monthStart } },
+        _sum: { amount: true },
+        _count: true,
+      }),
+      this.prisma.subscriptionPayment.aggregate({
+        where: { status: 'CONFIRMED' },
+        _sum: { amount: true },
+        _count: true,
+      }),
+      this.prisma.business.count(),
+      this.prisma.business.count({ where: { isActive: true } }),
+      this.prisma.business.count({ where: { isActive: false } }),
+      this.prisma.subscription.count({ where: { status: 'TRIALING' } }),
+      this.prisma.subscription.count({ where: { status: 'EXPIRED' } }),
+    ]);
+    return {
+      pendingPayments: pending,
+      revenueThisMonth: confirmedMonth._sum.amount?.toNumber() ?? 0,
+      paymentsThisMonth: confirmedMonth._count,
+      revenueAllTime: confirmedAll._sum.amount?.toNumber() ?? 0,
+      paymentsAllTime: confirmedAll._count,
+      totalBusinesses: businesses,
+      activeBusinesses: activeBiz,
+      suspendedBusinesses: suspended,
+      trialingSubscriptions: trialing,
+      expiredSubscriptions: expired,
+    };
+  }
+
+  async auditLogs(limit = 100) {
+    const rows = await this.prisma.auditLog.findMany({
+      where: {
+        action: {
+          in: [
+            'BILLING_PAYMENT_CONFIRM',
+            'BILLING_PAYMENT_REJECT',
+            'BILLING_GRANT_DAYS',
+            'BILLING_FORCE_EXPIRE',
+            'BUSINESS_SUSPEND',
+            'BUSINESS_ACTIVATE',
+            'PLATFORM_ADMIN_GRANT',
+            'PLATFORM_ADMIN_REVOKE',
+          ],
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: Math.min(limit, 200),
+      include: {
+        user: { select: { firstName: true, lastName: true, email: true } },
+        business: { select: { name: true } },
+      },
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      action: r.action,
+      entityType: r.entityType,
+      entityId: r.entityId,
+      businessName: r.business?.name ?? null,
+      actor: r.user
+        ? `${r.user.firstName} ${r.user.lastName ?? ''}`.trim()
+        : r.userId === null
+          ? 'SYSTEM'
+          : '—',
+      newValues: r.newValues,
+      oldValues: r.oldValues,
+      createdAt: r.createdAt,
+    }));
+  }
+
+  async listPlatformAdmins() {
+    const users = await this.prisma.user.findMany({
+      where: { isPlatformAdmin: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        isActive: true,
+        lastLoginAt: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+    return users.map((u) => ({
+      id: u.id,
+      name: `${u.firstName} ${u.lastName ?? ''}`.trim(),
+      email: u.email,
+      phone: u.phone,
+      isActive: u.isActive,
+      lastLoginAt: u.lastLoginAt,
+      createdAt: u.createdAt,
+    }));
+  }
+
+  async searchUsers(q: string) {
+    const query = (q || '').trim();
+    if (query.length < 2) return [];
+    const users = await this.prisma.user.findMany({
+      where: {
+        OR: [
+          { email: { contains: query, mode: 'insensitive' } },
+          { phone: { contains: query } },
+          { firstName: { contains: query, mode: 'insensitive' } },
+          { lastName: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        isPlatformAdmin: true,
+        isActive: true,
+      },
+      take: 20,
+    });
+    return users.map((u) => ({
+      id: u.id,
+      name: `${u.firstName} ${u.lastName ?? ''}`.trim(),
+      email: u.email,
+      phone: u.phone,
+      isPlatformAdmin: u.isPlatformAdmin,
+      isActive: u.isActive,
+    }));
+  }
+
+  async setPlatformAdmin(userId: string, adminId: string, isPlatformAdmin: boolean) {
+    if (userId === adminId && !isPlatformAdmin) {
+      throw new BadRequestException('You cannot remove your own platform admin access');
+    }
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { isPlatformAdmin },
+    });
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: isPlatformAdmin ? 'PLATFORM_ADMIN_GRANT' : 'PLATFORM_ADMIN_REVOKE',
+        entityType: 'User',
+        entityId: userId,
+        newValues: { isPlatformAdmin, target: user.email || user.phone },
+      },
+    });
+    return { ok: true, isPlatformAdmin };
+  }
+
+  async setUserActive(userId: string, adminId: string, isActive: boolean) {
+    if (userId === adminId && !isActive) {
+      throw new BadRequestException('You cannot deactivate your own account');
+    }
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive },
+    });
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: isActive ? 'USER_ACTIVATE' : 'USER_DEACTIVATE',
+        entityType: 'User',
+        entityId: userId,
+        newValues: { isActive },
+      },
+    });
+    return { ok: true, isActive };
   }
 }

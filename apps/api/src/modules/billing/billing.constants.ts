@@ -15,3 +15,5 @@ export const MAX_PENDING_PAYMENTS = 3;
 
 export const SETTING_INSTRUCTIONS = 'billing.paymentInstructions';
 export const SETTING_SUPPORT_PHONE = 'billing.supportPhone';
+export const SETTING_MAINTENANCE = 'platform.maintenance';
+export const SETTING_MAINTENANCE_MSG = 'platform.maintenanceMessage';
