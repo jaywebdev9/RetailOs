@@ -7,6 +7,7 @@ type Props = {
   onPricesAndPacks: () => void;
   onEdit: () => void;
   onArchive: () => void;
+  onDelete: () => void;
 };
 
 const MENU_WIDTH = 176; // w-44
@@ -17,7 +18,7 @@ const MENU_HEIGHT = 140; // approx., used only to decide whether to open upwards
  * The menu is positioned with `fixed` so the table's rounded/overflow-hidden wrapper
  * never clips it (important for the last rows). Closes on outside click, Escape, scroll, resize.
  */
-export function ProductActionsMenu({ productName, onPricesAndPacks, onEdit, onArchive }: Props) {
+export function ProductActionsMenu({ productName, onPricesAndPacks, onEdit, onArchive, onDelete }: Props) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -99,6 +100,9 @@ export function ProductActionsMenu({ productName, onPricesAndPacks, onEdit, onAr
           <div className="my-1 border-t border-slate-100" />
           <button role="menuitem" className={`${item} text-red-600`} onClick={run(onArchive)}>
             Archive product
+          </button>
+          <button role="menuitem" className={`${item} text-red-700 font-medium`} onClick={run(onDelete)}>
+            Delete permanently
           </button>
         </div>
       )}

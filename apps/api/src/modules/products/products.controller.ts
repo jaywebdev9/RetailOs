@@ -124,6 +124,22 @@ export class ProductsController {
     return this.productsService.update(this.businessId(headers), req.user.sub, id, dto);
   }
 
+  @Delete(':id')
+  @UseGuards(PermissionsGuard)
+  @RequirePermissions('products.update')
+  @ApiOperation({ summary: 'Permanently delete a product without transaction history' })
+  delete(
+    @Req() req: any,
+    @Headers() headers: Record<string, string>,
+    @Param('id') id: string,
+  ) {
+    return this.productsService.delete(
+      this.businessId(headers),
+      req.user.sub,
+      id,
+    );
+  }
+
   @Post(':id/archive')
   @UseGuards(PermissionsGuard)
   @RequirePermissions('products.update')
