@@ -78,6 +78,12 @@ export class ProductsController {
     });
   }
 
+  @Get('catalog/options')
+  @ApiOperation({ summary: 'Categories and units of this business (for the product form)' })
+  catalogOptions(@Req() req: any, @Headers() headers: Record<string, string>) {
+    return this.productsService.catalogOptions(this.businessId(headers), req.user.sub);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get product with current stock' })
   findOne(

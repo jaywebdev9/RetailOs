@@ -7,7 +7,10 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 import { Prisma } from '@prisma/client';
+
+const PRODUCT_STATUSES = ['ACTIVE', 'ARCHIVED', 'DISCONTINUED'];
 
 @Injectable()
 export class ProductsService {
@@ -81,6 +84,11 @@ export class ProductsService {
     const page = opts.page ?? 1;
     const limit = Math.min(opts.limit ?? 50, 100);
     const skip = (page - 1) * limit;
+
+    // Default stays ACTIVE (unchanged). An unknown value is a clear 400, not a database error.
+    if (opts.status && !PRODUCT_STATUSES.includes(opts.status)) {
+      throw new BadRequestException('Invalid product status filter');
+    }
 
     const where: Prisma.ProductWhereInput = {
       businessId,
@@ -179,7 +187,53 @@ export class ProductsService {
     return { items, total, page, limit };
   }
 
-  async update(businessId: string, userId: string, productId: string, dto: import('./dto/update-product.dto').UpdateProductDto) {
+  /** Categories and units of this business, for the product edit form. Read-only. */
+  async catalogOptions(businessId: string, userId: string) {
+    await this.assertMembership(businessId, userId);
+    const [categories, units] = await Promise.all([
+      this.prisma.category.findMany({
+        where: { businessId, isActive: true },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
+      }),
+      this.prisma.unit.findMany({
+        where: { businessId, isActive: true },
+        select: { id: true, name: true, symbol: true },
+        orderBy: { name: 'asc' },
+      }),
+    ]);
+    return { categories, units };
+  }
+
+  /** '' / whitespace / null clears an optional text field; undefined leaves it untouched. */
+  private optionalText(value: string | null | undefined): string | null | undefined {
+    if (value === undefined) return undefined;
+    if (value === null) return null;
+    const trimmed = value.trim();
+    return trimmed === '' ? null : trimmed;
+  }
+
+  private async assertUnique(
+    businessId: string,
+    productId: string,
+    field: 'sku' | 'barcode',
+    value: string,
+  ) {
+    const existing = await this.prisma.product.findFirst({
+      where: { businessId, [field]: value, NOT: { id: productId } },
+      select: { id: true, status: true },
+    });
+    if (existing) {
+      const label = field === 'sku' ? 'SKU' : 'Barcode';
+      throw new ConflictException(
+        existing.status === 'ACTIVE'
+          ? `${label} already exists`
+          : `${label} already exists (used by an archived product)`,
+      );
+    }
+  }
+
+  async update(businessId: string, userId: string, productId: string, dto: UpdateProductDto) {
     await this.assertMembership(businessId, userId);
 
     const product = await this.prisma.product.findFirst({
@@ -187,35 +241,66 @@ export class ProductsService {
     });
     if (!product) throw new NotFoundException('Product not found');
 
-    if (dto.sku && dto.sku !== product.sku) {
-      const existing = await this.prisma.product.findUnique({
-        where: { businessId_sku: { businessId, sku: dto.sku } },
-      });
-      if (existing) throw new ConflictException('SKU already exists');
+    // JSON can carry null even though the DTO types say optional: handle it explicitly
+    // so a null never reaches `new Prisma.Decimal(null)` (which would be a 500).
+    const raw = dto as Record<string, any>;
+    const requiredFields = ['costPrice', 'sellingPrice', 'reorderLevel', 'reorderQuantity'];
+    for (const f of requiredFields) {
+      if (raw[f] === null) throw new BadRequestException(`${f} cannot be empty`);
+    }
+    for (const f of ['trackInventory', 'allowNegativeStock', 'status']) {
+      if (raw[f] === null) throw new BadRequestException(`${f} cannot be empty`);
     }
 
-    if (dto.barcode && dto.barcode !== product.barcode) {
-      const existing = await this.prisma.product.findUnique({
-        where: { businessId_barcode: { businessId, barcode: dto.barcode } },
+    if (dto.name !== undefined) {
+      if (raw.name === null || String(dto.name).trim() === '') {
+        throw new BadRequestException('Product name cannot be empty');
+      }
+    }
+
+    const sku = this.optionalText(dto.sku);
+    const barcode = this.optionalText(dto.barcode);
+    const description = this.optionalText(dto.description);
+
+    if (sku && sku !== product.sku) {
+      await this.assertUnique(businessId, productId, 'sku', sku);
+    }
+    if (barcode && barcode !== product.barcode) {
+      await this.assertUnique(businessId, productId, 'barcode', barcode);
+    }
+
+    // Category / unit must belong to the same business (never trust a bare id from the client)
+    if (dto.categoryId) {
+      const cat = await this.prisma.category.findFirst({
+        where: { id: dto.categoryId, businessId },
+        select: { id: true },
       });
-      if (existing) throw new ConflictException('Barcode already exists');
+      if (!cat) throw new BadRequestException('Category not found');
+    }
+    if (dto.unitId) {
+      const unit = await this.prisma.unit.findFirst({
+        where: { id: dto.unitId, businessId },
+        select: { id: true },
+      });
+      if (!unit) throw new BadRequestException('Unit not found');
     }
 
     const data: Prisma.ProductUpdateInput = {};
-    if (dto.name !== undefined) data.name = dto.name;
-    if (dto.sku !== undefined) data.sku = dto.sku;
-    if (dto.barcode !== undefined) data.barcode = dto.barcode;
-    if (dto.description !== undefined) data.description = dto.description;
+    if (dto.name !== undefined) data.name = dto.name.trim();
+    if (sku !== undefined) data.sku = sku;
+    if (barcode !== undefined) data.barcode = barcode;
+    if (description !== undefined) data.description = description;
     if (dto.costPrice !== undefined) data.costPrice = new Prisma.Decimal(dto.costPrice);
     if (dto.sellingPrice !== undefined) data.sellingPrice = new Prisma.Decimal(dto.sellingPrice);
     if (dto.minimumSellingPrice !== undefined) {
-      data.minimumSellingPrice = new Prisma.Decimal(dto.minimumSellingPrice);
+      data.minimumSellingPrice =
+        raw.minimumSellingPrice === null ? null : new Prisma.Decimal(dto.minimumSellingPrice);
     }
     if (dto.wholesalePrice !== undefined) {
-      data.wholesalePrice = dto.wholesalePrice === null ? null : new Prisma.Decimal(dto.wholesalePrice);
+      data.wholesalePrice = raw.wholesalePrice === null ? null : new Prisma.Decimal(dto.wholesalePrice);
     }
     if (dto.wholesaleMinQty !== undefined) {
-      data.wholesaleMinQty = dto.wholesaleMinQty === null ? null : new Prisma.Decimal(dto.wholesaleMinQty);
+      data.wholesaleMinQty = raw.wholesaleMinQty === null ? null : new Prisma.Decimal(dto.wholesaleMinQty);
     }
     if (dto.reorderLevel !== undefined) data.reorderLevel = new Prisma.Decimal(dto.reorderLevel);
     if (dto.reorderQuantity !== undefined) data.reorderQuantity = new Prisma.Decimal(dto.reorderQuantity);
@@ -231,11 +316,29 @@ export class ProductsService {
       data.unit = dto.unitId ? { connect: { id: dto.unitId } } : { disconnect: true };
     }
 
-    const updated = await this.prisma.product.update({
-      where: { id: productId },
-      data,
-      include: { category: true, unit: true, packs: { where: { isActive: true } } },
-    });
+    let updated;
+    try {
+      updated = await this.prisma.product.update({
+        where: { id: productId },
+        data,
+        include: { category: true, unit: true, packs: { where: { isActive: true } } },
+      });
+    } catch (err: any) {
+      // Two requests racing for the same SKU/barcode: the DB unique index is the last line of defence
+      if (err?.code === 'P2002') {
+        throw new ConflictException('SKU or barcode already exists');
+      }
+      throw err;
+    }
+
+    // Audit: previous values of exactly the fields that were sent (money fields as strings)
+    const oldValues: Record<string, unknown> = { name: product.name, status: product.status };
+    for (const key of Object.keys(raw)) {
+      const before = (product as Record<string, any>)[key];
+      if (before !== undefined) {
+        oldValues[key] = before instanceof Prisma.Decimal ? before.toString() : before;
+      }
+    }
 
     await this.prisma.auditLog.create({
       data: {
@@ -244,7 +347,7 @@ export class ProductsService {
         action: 'PRODUCT_UPDATE',
         entityType: 'Product',
         entityId: productId,
-        oldValues: { name: product.name, status: product.status },
+        oldValues: oldValues as any,
         newValues: dto as any,
       },
     });
