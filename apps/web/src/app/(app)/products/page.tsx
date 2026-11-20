@@ -66,6 +66,9 @@ export default function ProductsPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
   const [archiving, setArchiving] = useState<Product | null>(null);
+  const [deleting, setDeleting] = useState<Product | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [archiveBusy, setArchiveBusy] = useState(false);
   const [archiveError, setArchiveError] = useState<string | null>(null);
   const archiveLock = useRef(false);
@@ -203,6 +206,31 @@ export default function ProductsPage() {
     } finally {
       archiveLock.current = false;
       setArchiveBusy(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleting || !businessId || deleteBusy) return;
+
+    setDeleteBusy(true);
+    setDeleteError(null);
+
+    try {
+      await api.delete(`/products/${deleting.id}`, hdr());
+
+      const name = deleting.name;
+      setDeleting(null);
+      setNotice(`"${name}" was permanently deleted.`);
+      await load();
+    } catch (err) {
+      setDeleteError(
+        apiErrorMessage(
+          err,
+          'Could not delete product. Products with transaction history must be archived.',
+        ),
+      );
+    } finally {
+      setDeleteBusy(false);
     }
   };
 
@@ -440,6 +468,7 @@ export default function ProductsPage() {
                             onEdit={() => setEditing(p)}
                             onPricesAndPacks={() => openEditor(p)}
                             onArchive={() => { setArchiveError(null); setArchiving(p); }}
+                            onDelete={() => { setDeleteError(null); setDeleting(p); }}
                           />
                         )}
                       </td>
@@ -541,6 +570,29 @@ export default function ProductsPage() {
           </ul>
         </ConfirmDialog>
       )}
+
+      {deleting && (
+        <ConfirmDialog
+          title="Permanently delete this product?"
+          confirmLabel="Delete permanently"
+          busyLabel="Deleting…"
+          tone="danger"
+          busy={deleteBusy}
+          error={deleteError}
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleting(null)}
+        >
+          <p>
+            <strong>{deleting.name}</strong> will be permanently deleted.
+          </p>
+          <p>
+            This action cannot be undone. Products with sales, purchases,
+            returns, stock movements or stock-count history cannot be deleted.
+            Archive those products instead.
+          </p>
+        </ConfirmDialog>
+      )}
+
     </div>
   );
 }

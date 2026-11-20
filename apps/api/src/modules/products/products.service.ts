@@ -355,6 +355,59 @@ export class ProductsService {
     return updated;
   }
 
+  async delete(businessId: string, userId: string, productId: string) {
+    await this.assertMembership(businessId, userId);
+
+    return this.prisma.$transaction(async (tx) => {
+      const product = await tx.product.findFirst({
+        where: { id: productId, businessId },
+      });
+
+      if (!product) throw new NotFoundException('Product not found');
+
+      const [
+        sales,
+        purchases,
+        movements,
+        stockCounts,
+        returns,
+      ] = await Promise.all([
+        tx.saleItem.count({ where: { productId } }),
+        tx.purchaseItem.count({ where: { productId } }),
+        tx.inventoryTransaction.count({ where: { businessId, productId } }),
+        tx.stockCountItem.count({ where: { productId } }),
+        tx.saleReturnItem.count({ where: { productId } }),
+      ]);
+
+      if (sales + purchases + movements + stockCounts + returns > 0) {
+        throw new ConflictException(
+          'This product has transaction history and cannot be permanently deleted. Archive it instead.',
+        );
+      }
+
+      await tx.auditLog.create({
+        data: {
+          businessId,
+          userId,
+          action: 'PRODUCT_DELETE',
+          entityType: 'Product',
+          entityId: productId,
+          oldValues: {
+            name: product.name,
+            sku: product.sku,
+            status: product.status,
+          },
+        },
+      });
+
+      await tx.product.delete({
+        where: { id: productId },
+      });
+
+      return { success: true, message: 'Product deleted successfully' };
+    });
+  }
+
   async archive(businessId: string, userId: string, productId: string) {
     return this.update(businessId, userId, productId, { status: 'ARCHIVED' as any });
   }
