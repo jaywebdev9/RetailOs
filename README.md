@@ -1,5 +1,21 @@
-# Fix: language toggle visible on mobile
+# Fix: nest: not found on Render
 
-The EN/SW button was `hidden sm:inline-flex` so it never appeared on phones.
+## Cause
+`@nestjs/cli` was only in devDependencies. Production install skips it → `nest: not found`.
 
-Now always visible next to the notification bell.
+## Fix
+- `build`: `npx nest build`
+- `@nestjs/cli` moved to dependencies
+
+## Render Build Command (recommended)
+```
+npm install && npx prisma generate && npx prisma migrate deploy && npm run build -w @retail-os/api
+```
+
+## Start Command
+```
+node apps/api/dist/main
+```
+(or from apps/api: `node dist/main`)
+
+Do NOT run seed on every deploy.
