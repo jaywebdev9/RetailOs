@@ -385,7 +385,11 @@ export default function ProductsPage() {
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
+            <div className="md:hidden px-4 py-2 text-xs text-slate-500 bg-slate-50 border-b">
+              Swipe left or right to view all product details →
+            </div>
+            <div className="w-full overflow-x-auto overscroll-x-contain">
+            <table className="w-full min-w-[850px] md:min-w-full text-sm">
               <thead className="bg-slate-50 text-left text-slate-500">
                 <tr>
                   <th className="px-4 py-3 font-medium">Name</th>
@@ -498,6 +502,7 @@ export default function ProductsPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </main>
